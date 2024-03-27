@@ -123,4 +123,14 @@ class GithubService
 
         return $commits[0];
     }
+
+    public function isUserPartOfOrganisation(string $organisation, string $username): void
+    {
+        $this->githubClient->organizations()->members()->check($organisation, $username);
+    }
+
+    public function removeLabel(PullRequest $pr, string $label): void
+    {
+        $this->githubClient->issue()->labels()->remove($pr->owner, $pr->repo, $pr->number, $label);
+    }
 }

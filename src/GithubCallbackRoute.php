@@ -9,7 +9,7 @@ class GithubCallbackRoute
     private JiraService $jiraService;
     private Area $area;
 
-    private string $allowedSender;
+    private string $githubOrg;
     private string $action;
     private string $label;
 
@@ -20,7 +20,7 @@ class GithubCallbackRoute
         $this->jiraService = new JiraService();
         $this->area = new Area(new FileDownloader());
 
-        $this->allowedSender = env('ALLOWED_SENDER');
+        $this->githubOrg = env('GITHUB_ORG');
         $this->action = env('ACTION');
         $this->label = env('LABEL');
     }
@@ -83,6 +83,8 @@ class GithubCallbackRoute
         $this->githubService->updateChangelog($pr, $ticket);
 
         $this->gitlabService->createGitlabMR($pr, $ticket, $firstCommit);
+
+        $this->githubService->removeLabel($pr, $this->label);
     }
 
     private function validateRequest(array $data): void
@@ -106,12 +108,16 @@ class GithubCallbackRoute
             exit;
         }
 
-        // check that sender is a specific username (TODO check that is part of shopware)
-        if (!isset($data['payload']['sender']) || $data['payload']['sender']['login'] !== $this->allowedSender) {
+        // check that sender is part of shopware
+        if (!isset($data['payload']['sender']) || !isset($data['payload']['sender']['login'])) {
             http_response_code(400);
             echo 'Invalid JSON data 3';
             exit;
         }
+
+        $sender = $data['payload']['sender']['login'];
+
+        $this->githubService->isUserPartOfOrganisation($this->githubOrg, $sender);
 
         // check that label removed was 'Triage required'
         if (!isset($data['payload']['label']) || $data['payload']['label']['name'] !== $this->label) {
