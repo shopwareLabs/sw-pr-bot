@@ -75,6 +75,10 @@ class GithubCallbackRoute
         $ticket = $this->jiraService->parseTicketNumber($pr->body);
 
         if ($ticket === null) {
+            $this->jiraService->parseTicketNumber($pr->title);
+        }
+
+        if ($ticket === null) {
             $ticket = $this->jiraService->createTicket($pr, $areas->mostLikelyCandidate);
         }
 
