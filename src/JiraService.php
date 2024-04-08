@@ -59,9 +59,9 @@ class JiraService
             ->setDescription($description)
             ->addLabelAsString('Github')
             // Product Area
-            ->addCustomField('customfield_14101', ['value' => self::LABEL_TO_AREA_MAPPINGS[$area]])
+            ->addCustomField('customfield_14101', ['value' => self::LABEL_TO_AREA_MAPPINGS[$area] ?? self::LABEL_TO_AREA_MAPPINGS['Area: Core']])
             // Team
-            ->addCustomField('customfield_12000', ['value' => self::AREA_TO_TEAM_MAPPING[$area]])
+            ->addCustomField('customfield_12000', ['value' => self::AREA_TO_TEAM_MAPPING[$area] ?? self::AREA_TO_TEAM_MAPPING['Area: Core']])
             // PR Link
             ->addCustomField('customfield_12100', $pr->link)
             // Is Public?
