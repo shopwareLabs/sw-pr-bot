@@ -31,7 +31,7 @@ class GitlabService
         $tmpDir = sys_get_temp_dir() . '/' . uniqid('github-import-');
 
         // clone PR base repo
-        exec('git clone ' . $pr->baseRepoCloneUrl . ' ' . $tmpDir);
+        exec('git clone ' . $pr->headRepoCloneUrl . ' ' . $tmpDir);
 
         chdir($tmpDir);
 
@@ -39,7 +39,7 @@ class GitlabService
         exec('git config user.name "shopwareBot"');
 
         // add the github remote
-        exec('git remote add github ' . $pr->baseRepoCloneUrl);
+        exec('git remote add github ' . $pr->headRepoCloneUrl);
 
         // fetch the PR branch
         exec('git fetch github ' . $pr->branch);

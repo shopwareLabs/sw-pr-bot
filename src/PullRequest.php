@@ -7,7 +7,7 @@ class PullRequest
     public function __construct(
         public string $owner,
         public string $repo,
-        public string $baseRepoCloneUrl,
+        public string $headRepoCloneUrl,
         public string $branch,
         public string $targetBranch,
         public int $number,

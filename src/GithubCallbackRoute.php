@@ -58,9 +58,9 @@ class GithubCallbackRoute
 
         $this->validateRequest($data);
 
-        $this->githubService->authenticateToGithub($data['payload']['installation']['id']);
+        $this->githubService->authenticateToGithub($data['installation']['id']);
 
-        $pr = PullRequest::fromPayload($data['payload']);
+        $pr = PullRequest::fromPayload($data);
 
         $firstCommit = $this->githubService->getFirstCommit($pr);
 
@@ -97,11 +97,9 @@ class GithubCallbackRoute
         }
 
         // check that decoded data contains event key and is equal to pull_request
-        if (!isset($data['event']) ||
-            $data['event'] !== 'pull_request' ||
-            !isset($data['payload']) ||
-            !isset($data['payload']['action']) ||
-            $data['payload']['action'] !== $this->action
+        if (!isset($data['pull_request']) ||
+            !isset($data['action']) ||
+            $data['action'] !== $this->action
         ) {
             http_response_code(400);
             echo 'Invalid JSON data 2';
@@ -109,25 +107,25 @@ class GithubCallbackRoute
         }
 
         // check that sender is part of shopware
-        if (!isset($data['payload']['sender']) || !isset($data['payload']['sender']['login'])) {
+        if (!isset($data['sender']) || !isset($data['sender']['login'])) {
             http_response_code(400);
             echo 'Invalid JSON data 3';
             exit;
         }
 
-        $sender = $data['payload']['sender']['login'];
+        $sender = $data['sender']['login'];
 
         $this->githubService->isUserPartOfOrganisation($this->githubOrg, $sender);
 
-        // check that label removed was 'Triage required'
-        if (!isset($data['payload']['label']) || $data['payload']['label']['name'] !== $this->label) {
+        // check that label removed matches the label we are looking for
+        if (!isset($data['label']) || $data['label']['name'] !== $this->label) {
             http_response_code(400); // Bad request
             echo 'Invalid JSON data 4';
             exit;
         }
 
         // check that we have installation id
-        if (!isset($data['payload']['installation']['id'])) {
+        if (!isset($data['installation']['id'])) {
             http_response_code(400); // Bad request
             echo 'Invalid JSON data 5';
             exit;
