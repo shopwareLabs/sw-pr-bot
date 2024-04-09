@@ -80,9 +80,25 @@ class JiraService
         return substr($issue->key, 5);
     }
 
-    public function parseTicketNumber(string $body): ?string
+    public function parseTicketNumberFromBody(string $body): ?string
     {
-        preg_match('/### 4\..*?NEXT-(\d+).*?### 5\./', $body, $matches);
+        preg_match('/### 4\..*?NEXT-(\d+).*?### 5\./s', $body, $matches);
+
+        if (empty($matches)) {
+            return null;
+        }
+
+        if ((int) $matches[1] === 0) {
+            //NEXT-0000 is invalid
+            return null;
+        }
+
+        return $matches[1];
+    }
+
+    public function parseTicketNumberFromTitle(string $title): ?string
+    {
+        preg_match('/NEXT-(\d+)/', $title, $matches);
 
         if (empty($matches)) {
             return null;

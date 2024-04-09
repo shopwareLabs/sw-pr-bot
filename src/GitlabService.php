@@ -23,7 +23,7 @@ class GitlabService
         $this->projectId = env('GITLAB_PROJECT_ID');
     }
 
-    public function createGitlabMR(PullRequest $pr, string $ticket, array $firstCommit): void
+    public function createGitlabMR(PullRequest $pr, string $ticket, array $firstCommit, ?array $updatedChangelog): void
     {
         $this->gitlabClient->authenticate($this->token, GitlabClient::AUTH_HTTP_TOKEN);
 
@@ -82,6 +82,18 @@ class GitlabService
                 'allow_collaboration' => true,
             ]
         );
+
+        if ($updatedChangelog !== null) {
+            $this->gitlabClient->repositoryFiles()->updateFile(
+                $this->projectId,
+                [
+                    'file_path' => $updatedChangelog['filename'],
+                    'branch' => $branch,
+                    'content' => $updatedChangelog['contents'],
+                    'commit_message' => 'NEXT-' . $ticket . ' - ' . 'Update changelog',
+                ]
+            );
+        }
 
         // remove the temp dir
         exec('rm -rf ' . $tmpDir);

@@ -44,9 +44,9 @@ class GithubService
         $this->githubClient->authenticate($response['token'], null, AuthMethod::ACCESS_TOKEN);
     }
 
-    public function updatePullRequestTitle(PullRequest $pr, ?string $ticket): void
+    public function updatePullRequestTitle(PullRequest $pr, string $ticket): void
     {
-        $title = 'NEXT-' . $ticket . ' - ' . preg_replace('/NEXT-\d+/', '', $pr->title);
+        $title = 'NEXT-' . $ticket . ' - ' . preg_replace('/NEXT-\d+\s*-\s*/', '', $pr->title);
 
         $this->githubClient->pullRequest()->update($pr->owner, $pr->repo, $pr->number, [
             'title' => $title,
@@ -55,7 +55,7 @@ class GithubService
         $pr->title = $title;
     }
 
-    public function updateChangelog(PullRequest $pr, ?string $ticket): void
+    public function updateChangelog(PullRequest $pr, ?string $ticket): ?array
     {
         $files = $this->githubClient->pullRequest()->files($pr->owner, $pr->repo, $pr->number);
 
@@ -69,7 +69,7 @@ class GithubService
         }
 
         if ($changelog === null) {
-            return;
+            return null;
         }
 
         $contents = explode("\n", file_get_contents($changelog['raw_url']));
@@ -77,17 +77,11 @@ class GithubService
 
         array_splice($contents, 1, 0, ['issue: NEXT-' . $ticket]);
 
-        $newContent = implode("\n", $contents);
-
-        $this->githubClient->repo()->contents()->update(
-            $pr->owner,
-            $pr->repo,
-            $changelog['filename'],
-            $newContent,
-            'Update changelog',
-            $changelog['sha'],
-            $pr->branch
-        );
+        return [
+            'filename' => $changelog['filename'],
+            'sha' => $changelog['sha'],
+            'contents' => implode("\n", $contents),
+        ];
     }
 
     public function getAreaLabel(PullRequest $pr): ?string

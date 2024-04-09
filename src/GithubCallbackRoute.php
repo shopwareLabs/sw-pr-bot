@@ -72,10 +72,10 @@ class GithubCallbackRoute
 
         $areas = $this->labelAreas($pr);
 
-        $ticket = $this->jiraService->parseTicketNumber($pr->body);
+        $ticket = $this->jiraService->parseTicketNumberFromBody($pr->body);
 
         if ($ticket === null) {
-            $this->jiraService->parseTicketNumber($pr->title);
+            $ticket = $this->jiraService->parseTicketNumberFromTitle($pr->title);
         }
 
         if ($ticket === null) {
@@ -84,9 +84,9 @@ class GithubCallbackRoute
 
         $this->githubService->updatePullRequestTitle($pr, $ticket);
 
-        $this->githubService->updateChangelog($pr, $ticket);
+        $updatedChangelog = $this->githubService->updateChangelog($pr, $ticket);
 
-        $this->gitlabService->createGitlabMR($pr, $ticket, $firstCommit);
+        $this->gitlabService->createGitlabMR($pr, $ticket, $firstCommit, $updatedChangelog);
 
         $this->githubService->removeLabel($pr, $this->label);
     }
